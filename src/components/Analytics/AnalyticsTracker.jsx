@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, Users, Heart, DollarSign, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, TrendingUp, Users, DollarSign, Trash2 } from 'lucide-react';
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { loadAnalytics, saveAnalytics, loadClients, generateId } from '../../utils/storage';
@@ -38,32 +38,19 @@ const defaultWeek = () => ({
   notes: '',
 });
 
-const defaultRevenue = () => ({
-  id: generateId(),
-  month: new Date().toISOString().slice(0, 7),
-  revenue: 0,
-  clients: 0,
-  notes: '',
-});
-
 export default function AnalyticsTracker() {
-  const [data, setData] = useState({ weeks: [], postEngagement: [], revenue: [] });
-  const [clients, setClients] = useState([]);
-  const [showWeekModal, setShowWeekModal] = useState(false);
-  const [showRevenueModal, setShowRevenueModal] = useState(false);
-  const [weekForm, setWeekForm] = useState(defaultWeek());
-  const [revenueForm, setRevenueForm] = useState(defaultRevenue());
-  const [editWeek, setEditWeek] = useState(null);
-
-  useEffect(() => {
+  const [data, setData] = useState(() => {
     const loaded = loadAnalytics();
-    setData({
+    return {
       weeks: loaded.weeks || [],
       postEngagement: loaded.postEngagement || [],
       revenue: loaded.revenue || [],
-    });
-    setClients(loadClients());
-  }, []);
+    };
+  });
+  const [clients] = useState(() => loadClients());
+  const [showWeekModal, setShowWeekModal] = useState(false);
+  const [weekForm, setWeekForm] = useState(defaultWeek());
+  const [editWeek, setEditWeek] = useState(null);
 
   const saveData = (updated) => {
     setData(updated);
@@ -86,15 +73,6 @@ export default function AnalyticsTracker() {
     saveData({ ...data, weeks: data.weeks.filter(w => w.id !== id) });
   };
 
-  const handleAddRevenue = () => {
-    const updated = {
-      ...data,
-      revenue: [...(data.revenue || []), { ...revenueForm, id: generateId() }],
-    };
-    saveData(updated);
-    setShowRevenueModal(false);
-  };
-
   const sortedWeeks = [...data.weeks].sort((a, b) => new Date(a.date) - new Date(b.date));
   const latestWeek = sortedWeeks[sortedWeeks.length - 1];
   const prevWeek = sortedWeeks[sortedWeeks.length - 2];
@@ -112,7 +90,6 @@ export default function AnalyticsTracker() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Key metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Followers', value: totalFollowers.toLocaleString(), sub: `+${weeklyGrowth}% this week`, icon: Users, color: 'text-gold-400', iconColor: 'text-gold-400' },
@@ -134,7 +111,6 @@ export default function AnalyticsTracker() {
         })}
       </div>
 
-      {/* Follower Growth Chart */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-white">Follower Growth</h3>
@@ -177,7 +153,6 @@ export default function AnalyticsTracker() {
         )}
       </div>
 
-      {/* Engagement rate chart */}
       {sortedWeeks.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <h3 className="text-sm font-bold text-white mb-4">Engagement Rate (%)</h3>
@@ -193,7 +168,6 @@ export default function AnalyticsTracker() {
         </div>
       )}
 
-      {/* Weekly data table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-800">
           <h3 className="text-sm font-bold text-white">Weekly Data Log</h3>
@@ -238,7 +212,6 @@ export default function AnalyticsTracker() {
         )}
       </div>
 
-      {/* Add Week Modal */}
       <Modal isOpen={showWeekModal} onClose={() => setShowWeekModal(false)} title="Add Weekly Data">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

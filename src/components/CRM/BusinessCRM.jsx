@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Phone, Mail, Building2, TrendingUp, DollarSign, Users, ChevronDown, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Edit2, Trash2, Phone, Mail, Building2, TrendingUp, DollarSign, Users, Search } from 'lucide-react';
 import { loadClients, saveClients, generateId } from '../../utils/storage';
 import { PACKAGES, PIPELINE_STAGES } from '../../utils/constants';
 import Modal from '../shared/Modal';
@@ -36,8 +36,6 @@ const STAGE_BADGE = {
 };
 
 function ClientCard({ client, onEdit, onDelete, onStageChange }) {
-  const pkg = PACKAGES.find(p => p.name === client.packageType);
-
   return (
     <div className={`border rounded-xl p-4 transition-all hover:shadow-lg group ${STAGE_COLORS[client.stage] || STAGE_COLORS.Lead}`}>
       <div className="flex items-start justify-between mb-3">
@@ -95,7 +93,6 @@ function ClientCard({ client, onEdit, onDelete, onStageChange }) {
         <p className="text-xs text-gray-500 line-clamp-2 mb-3">{client.notes}</p>
       )}
 
-      {/* Stage selector */}
       <div className="relative">
         <select
           value={client.stage}
@@ -125,12 +122,7 @@ function ClientForm({ client, onChange }) {
         <Input label="Address" value={client.address} onChange={e => onChange({ ...client, address: e.target.value })} placeholder="123 King St W, Kitchener" />
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <Select
-          label="Stage"
-          value={client.stage}
-          onChange={e => onChange({ ...client, stage: e.target.value })}
-          options={PIPELINE_STAGES}
-        />
+        <Select label="Stage" value={client.stage} onChange={e => onChange({ ...client, stage: e.target.value })} options={PIPELINE_STAGES} />
         <Select
           label="Package Type"
           value={client.packageType}
@@ -140,13 +132,7 @@ function ClientForm({ client, onChange }) {
           }}
           options={PACKAGES.map(p => ({ value: p.name, label: `${p.name} ($${p.value})` }))}
         />
-        <Input
-          label="Monthly Value ($)"
-          type="number"
-          value={client.monthlyValue}
-          onChange={e => onChange({ ...client, monthlyValue: Number(e.target.value) })}
-          placeholder="0"
-        />
+        <Input label="Monthly Value ($)" type="number" value={client.monthlyValue} onChange={e => onChange({ ...client, monthlyValue: Number(e.target.value) })} placeholder="0" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Input label="Next Follow-up" type="date" value={client.nextFollowUp} onChange={e => onChange({ ...client, nextFollowUp: e.target.value })} />
@@ -158,17 +144,12 @@ function ClientForm({ client, onChange }) {
 }
 
 export default function BusinessCRM() {
-  const [clients, setClients] = useState([]);
+  const [clients, setClients] = useState(() => loadClients());
   const [showModal, setShowModal] = useState(false);
   const [editClient, setEditClient] = useState(null);
   const [formClient, setFormClient] = useState(defaultClient());
   const [search, setSearch] = useState('');
-  const [stageFilter, setStageFilter] = useState('');
   const [activeStageTab, setActiveStageTab] = useState('All');
-
-  useEffect(() => {
-    setClients(loadClients());
-  }, []);
 
   const handleSave = () => {
     let updated;
@@ -205,58 +186,40 @@ export default function BusinessCRM() {
     const matchSearch = !search ||
       c.businessName.toLowerCase().includes(search.toLowerCase()) ||
       c.ownerName.toLowerCase().includes(search.toLowerCase());
-    const matchStage = !stageFilter || c.stage === stageFilter;
     const matchTab = activeStageTab === 'All' || c.stage === activeStageTab;
-    return matchSearch && matchStage && matchTab;
+    return matchSearch && matchTab;
   });
 
-  // Metrics
   const activeClients = clients.filter(c => c.stage === 'Active Client');
   const mrr = activeClients.reduce((sum, c) => sum + (c.monthlyValue || 0), 0);
-  const pipelineValue = clients
-    .filter(c => c.stage === 'Pitched')
-    .reduce((sum, c) => sum + (c.monthlyValue || 0), 0);
+  const pipelineValue = clients.filter(c => c.stage === 'Pitched').reduce((sum, c) => sum + (c.monthlyValue || 0), 0);
   const totalLeads = clients.filter(c => c.stage === 'Lead').length;
 
   return (
     <div className="p-6 space-y-6">
-      {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign size={16} className="text-gold-400" />
-            <span className="text-xs text-gray-500">Monthly Revenue</span>
-          </div>
+          <div className="flex items-center gap-2 mb-2"><DollarSign size={16} className="text-gold-400" /><span className="text-xs text-gray-500">Monthly Revenue</span></div>
           <div className="text-2xl font-bold text-gold-400">${mrr.toLocaleString()}</div>
           <div className="text-xs text-gray-600 mt-1">MRR</div>
         </div>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={16} className="text-amber-400" />
-            <span className="text-xs text-gray-500">Pipeline Value</span>
-          </div>
+          <div className="flex items-center gap-2 mb-2"><TrendingUp size={16} className="text-amber-400" /><span className="text-xs text-gray-500">Pipeline Value</span></div>
           <div className="text-2xl font-bold text-amber-400">${pipelineValue.toLocaleString()}</div>
           <div className="text-xs text-gray-600 mt-1">Pitched deals</div>
         </div>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Users size={16} className="text-emerald-400" />
-            <span className="text-xs text-gray-500">Active Clients</span>
-          </div>
+          <div className="flex items-center gap-2 mb-2"><Users size={16} className="text-emerald-400" /><span className="text-xs text-gray-500">Active Clients</span></div>
           <div className="text-2xl font-bold text-emerald-400">{activeClients.length}</div>
           <div className="text-xs text-gray-600 mt-1">Paying clients</div>
         </div>
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Building2 size={16} className="text-blue-400" />
-            <span className="text-xs text-gray-500">Total Leads</span>
-          </div>
+          <div className="flex items-center gap-2 mb-2"><Building2 size={16} className="text-blue-400" /><span className="text-xs text-gray-500">Total Leads</span></div>
           <div className="text-2xl font-bold text-blue-400">{totalLeads}</div>
           <div className="text-xs text-gray-600 mt-1">In pipeline</div>
         </div>
       </div>
 
-      {/* Package breakdown */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <h3 className="text-sm font-semibold text-white mb-3">Package Pricing</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -274,33 +237,20 @@ export default function BusinessCRM() {
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
           {['All', ...PIPELINE_STAGES].map(stage => (
-            <button
-              key={stage}
-              onClick={() => setActiveStageTab(stage)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                activeStageTab === stage ? 'bg-gold-400 text-black' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {stage}
-              <span className="ml-1 opacity-60">
-                ({stage === 'All' ? clients.length : clients.filter(c => c.stage === stage).length})
-              </span>
+            <button key={stage} onClick={() => setActiveStageTab(stage)}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${activeStageTab === stage ? 'bg-gold-400 text-black' : 'text-gray-400 hover:text-white'}`}>
+              {stage} <span className="ml-1 opacity-60">({stage === 'All' ? clients.length : clients.filter(c => c.stage === stage).length})</span>
             </button>
           ))}
         </div>
         <div className="flex gap-2">
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search businesses..."
-              className="bg-gray-800 border border-gray-700 text-white text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-gold-400 w-48"
-            />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search businesses..."
+              className="bg-gray-800 border border-gray-700 text-white text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-gold-400 w-48" />
           </div>
           <Button variant="primary" onClick={() => { setFormClient(defaultClient()); setEditClient(null); setShowModal(true); }}>
             <Plus size={14} /> Add Client
@@ -308,7 +258,6 @@ export default function BusinessCRM() {
         </div>
       </div>
 
-      {/* Kanban / Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
           <Building2 size={40} className="mx-auto mb-3 opacity-50" />
@@ -317,24 +266,12 @@ export default function BusinessCRM() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(client => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onStageChange={handleStageChange}
-            />
+            <ClientCard key={client.id} client={client} onEdit={handleEdit} onDelete={handleDelete} onStageChange={handleStageChange} />
           ))}
         </div>
       )}
 
-      {/* Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => { setShowModal(false); setEditClient(null); }}
-        title={editClient ? 'Edit Client' : 'Add New Client'}
-        size="lg"
-      >
+      <Modal isOpen={showModal} onClose={() => { setShowModal(false); setEditClient(null); }} title={editClient ? 'Edit Client' : 'Add New Client'} size="lg">
         <ClientForm client={formClient} onChange={setFormClient} />
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-800">
           <Button variant="secondary" onClick={() => { setShowModal(false); setEditClient(null); }}>Cancel</Button>
