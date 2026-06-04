@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Phone, Mail, Building2, TrendingUp, DollarSign, Users, ChevronDown, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Edit2, Trash2, Phone, Mail, Building2, TrendingUp, DollarSign, Users, Search } from 'lucide-react';
 import { loadClients, saveClients, generateId } from '../../utils/storage';
 import { PACKAGES, PIPELINE_STAGES } from '../../utils/constants';
 import Modal from '../shared/Modal';
@@ -36,8 +36,6 @@ const STAGE_BADGE = {
 };
 
 function ClientCard({ client, onEdit, onDelete, onStageChange }) {
-  const pkg = PACKAGES.find(p => p.name === client.packageType);
-
   return (
     <div className={`border rounded-xl p-4 transition-all hover:shadow-lg group ${STAGE_COLORS[client.stage] || STAGE_COLORS.Lead}`}>
       <div className="flex items-start justify-between mb-3">
@@ -158,17 +156,12 @@ function ClientForm({ client, onChange }) {
 }
 
 export default function BusinessCRM() {
-  const [clients, setClients] = useState([]);
+  const [clients, setClients] = useState(() => loadClients());
   const [showModal, setShowModal] = useState(false);
   const [editClient, setEditClient] = useState(null);
   const [formClient, setFormClient] = useState(defaultClient());
   const [search, setSearch] = useState('');
-  const [stageFilter, setStageFilter] = useState('');
   const [activeStageTab, setActiveStageTab] = useState('All');
-
-  useEffect(() => {
-    setClients(loadClients());
-  }, []);
 
   const handleSave = () => {
     let updated;
@@ -205,9 +198,8 @@ export default function BusinessCRM() {
     const matchSearch = !search ||
       c.businessName.toLowerCase().includes(search.toLowerCase()) ||
       c.ownerName.toLowerCase().includes(search.toLowerCase());
-    const matchStage = !stageFilter || c.stage === stageFilter;
     const matchTab = activeStageTab === 'All' || c.stage === activeStageTab;
-    return matchSearch && matchStage && matchTab;
+    return matchSearch && matchTab;
   });
 
   // Metrics

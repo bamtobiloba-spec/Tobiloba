@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, Users, Heart, DollarSign, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, TrendingUp, Users, DollarSign, Trash2 } from 'lucide-react';
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { loadAnalytics, saveAnalytics, loadClients, generateId } from '../../utils/storage';
@@ -38,32 +38,20 @@ const defaultWeek = () => ({
   notes: '',
 });
 
-const defaultRevenue = () => ({
-  id: generateId(),
-  month: new Date().toISOString().slice(0, 7),
-  revenue: 0,
-  clients: 0,
-  notes: '',
-});
 
 export default function AnalyticsTracker() {
-  const [data, setData] = useState({ weeks: [], postEngagement: [], revenue: [] });
-  const [clients, setClients] = useState([]);
-  const [showWeekModal, setShowWeekModal] = useState(false);
-  const [showRevenueModal, setShowRevenueModal] = useState(false);
-  const [weekForm, setWeekForm] = useState(defaultWeek());
-  const [revenueForm, setRevenueForm] = useState(defaultRevenue());
-  const [editWeek, setEditWeek] = useState(null);
-
-  useEffect(() => {
+  const [data, setData] = useState(() => {
     const loaded = loadAnalytics();
-    setData({
+    return {
       weeks: loaded.weeks || [],
       postEngagement: loaded.postEngagement || [],
       revenue: loaded.revenue || [],
-    });
-    setClients(loadClients());
-  }, []);
+    };
+  });
+  const [clients] = useState(() => loadClients());
+  const [showWeekModal, setShowWeekModal] = useState(false);
+  const [weekForm, setWeekForm] = useState(defaultWeek());
+  const [editWeek, setEditWeek] = useState(null);
 
   const saveData = (updated) => {
     setData(updated);
@@ -84,15 +72,6 @@ export default function AnalyticsTracker() {
 
   const handleDeleteWeek = (id) => {
     saveData({ ...data, weeks: data.weeks.filter(w => w.id !== id) });
-  };
-
-  const handleAddRevenue = () => {
-    const updated = {
-      ...data,
-      revenue: [...(data.revenue || []), { ...revenueForm, id: generateId() }],
-    };
-    saveData(updated);
-    setShowRevenueModal(false);
   };
 
   const sortedWeeks = [...data.weeks].sort((a, b) => new Date(a.date) - new Date(b.date));

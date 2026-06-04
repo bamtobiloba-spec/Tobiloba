@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Plus, Copy, Trash2, Edit2, ChevronLeft, ChevronRight, Calendar, Filter } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { loadPosts, savePosts, generateId } from '../../utils/storage';
 import { PLATFORMS, PILLARS, STATUSES } from '../../utils/constants';
@@ -8,7 +8,6 @@ import Modal from '../shared/Modal';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import Select from '../shared/Select';
-import Badge from '../shared/Badge';
 
 const PLATFORM_OPTIONS = Object.keys(PLATFORMS);
 const PILLAR_OPTIONS = Object.keys(PILLARS);
@@ -29,8 +28,8 @@ const defaultPost = () => ({
 function PostCard({ post, onEdit, onDelete, onDuplicate, provided }) {
   const platform = PLATFORMS[post.platform] || PLATFORMS.Instagram;
   const pillar = PILLARS[post.pillar] || PILLARS['Hidden Gems'];
-  const status = STATUSES[post.status] || STATUSES.Draft;
 
+  /* eslint-disable react-hooks/refs */
   return (
     <div
       ref={provided.innerRef}
@@ -79,6 +78,7 @@ function PostCard({ post, onEdit, onDelete, onDuplicate, provided }) {
       </div>
     </div>
   );
+  /* eslint-enable react-hooks/refs */
 }
 
 function PostForm({ post, onChange }) {
@@ -146,26 +146,16 @@ function PostForm({ post, onChange }) {
   );
 }
 
-export default function ContentCalendar({ onAddPost, showAddModal, setShowAddModal }) {
-  const [posts, setPosts] = useState([]);
+export default function ContentCalendar({ showAddModal, setShowAddModal }) {
+  const [posts, setPosts] = useState(() => loadPosts());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [editPost, setEditPost] = useState(null);
   const [formPost, setFormPost] = useState(defaultPost());
   const [filterPlatform, setFilterPlatform] = useState('');
   const [filterPillar, setFilterPillar] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [view, setView] = useState('calendar'); // 'calendar' | 'list'
+  const [view, setView] = useState('calendar');
 
-  useEffect(() => {
-    setPosts(loadPosts());
-  }, []);
-
-  useEffect(() => {
-    if (showAddModal) {
-      setFormPost(defaultPost());
-      setEditPost(null);
-    }
-  }, [showAddModal]);
 
   const days = eachDayOfInterval({
     start: startOfMonth(currentMonth),
