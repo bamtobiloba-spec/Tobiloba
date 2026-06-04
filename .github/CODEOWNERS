@@ -1,0 +1,5 @@
+# All files — changes require review from a maintainer
+* @bamtobiloba-spec
+
+# GitHub Actions workflows require extra scrutiny
+.github/workflows/ @bamtobiloba-spec
