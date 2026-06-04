@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, Copy, Edit2, Trash2, Check, Hash, FileText, Search } from 'lucide-react';
 import { loadHashtags, saveHashtags, loadCaptions, saveCaptions, generateId } from '../../utils/storage';
 import { PILLARS } from '../../utils/constants';
@@ -31,8 +31,8 @@ function CopyButton({ text }) {
 }
 
 export default function CaptionLibrary() {
-  const [hashtags, setHashtags] = useState([]);
-  const [captions, setCaptions] = useState([]);
+  const [hashtags, setHashtags] = useState(() => loadHashtags());
+  const [captions, setCaptions] = useState(() => loadCaptions());
   const [activeTab, setActiveTab] = useState('hashtags');
   const [search, setSearch] = useState('');
   const [pillarFilter, setPillarFilter] = useState('');
@@ -42,11 +42,6 @@ export default function CaptionLibrary() {
   const [editCaption, setEditCaption] = useState(null);
   const [hashtagForm, setHashtagForm] = useState({ id: '', pillar: 'Hidden Gems', name: '', tags: '' });
   const [captionForm, setCaptionForm] = useState({ id: '', pillar: 'Hidden Gems', title: '', template: '' });
-
-  useEffect(() => {
-    setHashtags(loadHashtags());
-    setCaptions(loadCaptions());
-  }, []);
 
   const filteredHashtags = hashtags.filter(h => {
     if (pillarFilter && h.pillar !== pillarFilter) return false;

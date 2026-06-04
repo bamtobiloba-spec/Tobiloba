@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { Edit2, Save, Printer, Download, Eye, EyeOff, Users, TrendingUp, Star, CheckCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Edit2, Save, Printer, CheckCircle } from 'lucide-react';
 import { loadMediaKit, saveMediaKit } from '../../utils/storage';
 import Button from '../shared/Button';
-import Input from '../shared/Input';
 
 const CONTENT_PILLARS = [
   { name: 'Hidden Gems', icon: '💎', desc: 'Uncovering KW\'s best-kept secrets' },
@@ -36,14 +35,9 @@ function StatBox({ label, value, onChange, isEditing }) {
 }
 
 export default function MediaKitGenerator() {
-  const [kit, setKit] = useState(null);
+  const [kit, setKit] = useState(() => loadMediaKit());
   const [isEditing, setIsEditing] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
   const kitRef = useRef(null);
-
-  useEffect(() => {
-    setKit(loadMediaKit());
-  }, []);
 
   const handleSave = () => {
     saveMediaKit(kit);
